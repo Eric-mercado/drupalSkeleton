@@ -1,0 +1,4 @@
+name = Wind Farms
+description = A module that will help to conect to database
+core = 7.x
+version = 7.x-0.1-dev
