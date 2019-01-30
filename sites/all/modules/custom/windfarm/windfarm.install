@@ -1,0 +1,36 @@
+<?php
+/**
+ * Windfarm installation.  
+ */
+
+ /**
+  * Implements hook_install().
+  */
+function windfarm_install() {
+    //Set default variables. 
+    variable_set('windfarm_gmap', 1); 
+    variable_set('windfarm_default_center_lat', 42.91455); 
+    variable_set('windfarm_default_center_long', 75.93453); 
+    variable_set('windfarm_default_gmap_zom', 8);
+    
+    //Bringin t() to a accessible level before installation. 
+    $t = get_t();
+    
+    //Give user feedback. 
+    drupal_set_message($t('windfarm variables created.')); 
+}
+
+/** 
+ * Implements hook_uninstall().
+*/
+function winfarm_unistall() {
+    //remove variables. 
+    variable_del('windfarm_gmap'); 
+    variable_del('windfarm_default_center_lat');
+    variable_del('windfarm_default_center_long');
+    variable_del('windfarm_default_gmap_zom');
+
+    $t = get_t(); 
+    drupal_set_message($t('windfarm variables deleted')); 
+    
+}

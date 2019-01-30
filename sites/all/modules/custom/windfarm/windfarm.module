@@ -1,0 +1,144 @@
+<?php
+/**
+ *  @file
+ * Custom functionality of a wind farm database.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function windfarm_help($path, $arg) {
+    switch ($path) {
+      case 'admin/help#windfarm':
+        $output = '<h3>' . t('about') . '</h3>';
+        $output .= '<p>' . t('This module will be used  to manage a wind farm  database') . '</p>';
+        return $output;
+        break;
+    }
+  }
+
+  /**
+   * Implements hook_permission().
+   */
+  function windfarm_permission() {
+    return array(
+        'administer wind farms' => array(
+          'title' => t('administrer wind farm'),
+          'description' => t('Perform administrative task related to the wind farms functionality.'),
+        ),
+    );
+  }
+
+  /**
+   * Implements hook_menu().
+   */
+  function windfarm_menu() {
+    $items = array();
+    
+    $items['admin/config/windfarm'] = array (
+      'title' => 'wind farm',
+      'description' => 'manage windfarm',
+      'access arguments' => 'administer wind farms',
+    ); 
+
+    $items['admin/config/windfarm/manage'] = array (
+      'title' => 'wind farm settings',
+      'description' => 'windfarm setrings and configuration.',
+      'access arguments' => array('administer wind farms'),
+      'page callback'=>'drupal_get_form',
+      'page arguments' => array('windfarm_admin_settings_form'),
+    ); 
+
+    return $items; 
+  }
+
+  /**
+   * Implements hook_form().
+   */
+
+   function windfarm_admin_settings_form($node, &$form_state) {
+      $form = array(); 
+
+      $form['overview'] = array(
+          '#markup'=>t('This interface allows administrators to manage wind farms general settings'),
+          '#prefix'=>'<h3>',
+          '#suffix'=>'</h3>',
+      );
+
+      $form['windfarm_gmap'] = array( 
+        '#title' => t('Enable google Maps'),
+        '#description' => t('when enable google maps will be displayed if latitud and longitude is known'),
+        '#type' => 'checkbox', 
+        '#default_value'=>variable_get('windfarm_gmap'),
+      );
+
+      $form['default_center'] = array(
+        '#title' => t('Map Center'),
+        '#description'=> t('location of the center on the map of windfarm.'),
+        '#type' => 'fieldset', 
+        '#collapsible' => TRUE, 
+        '#collapsed'=> FALSE,
+      );
+
+      $form['default_center']['windfarm_default_center_lat'] = array(
+        '#title' => t('latitude'),
+        '#description' => t('Signed degrees format  (DDD.dddd)'), 
+        '#type' => 'textfield',
+        '#default_value' => variable_get('windfarm_default_center_lat'),
+        '#required' => TRUE,
+      );
+
+      $form['default_center']['windfarm_default_center_long'] = array(
+        '#title' => t('longitude'),
+        '#description' => t('Signed degrees format  (DDD.dddd)'), 
+        '#type' => 'textfield',
+        '#default_value' => variable_get('windfarm_default_center_long'),
+        '#required' => TRUE,
+      );
+
+      $options = range(0, 20, 1); 
+      $options[0] = t('0 fhurtest'); 
+      $options[20] = t('20 closest'); 
+
+      $form['windfarm_default_gmap_zoom'] = array(
+          '#title' => t('gmail default value zoom '), 
+          '#description' => t('dedault level of zoom between 0 and 20'), 
+          '#type' => 'select', 
+          '#options' => $options,
+          '#default_value' => variable_get('windfarm_default_gmap_zoom'),
+          '#required' => TRUE,
+      );
+
+      return system_settings_form($form); 
+   }
+
+   /*
+   * Validate wind farm admin settings.  
+   */
+   function windfarm_admin_settings_form_validate($form, &$form_state) {
+     dpm($form_state['values']);
+     
+     //regex
+     $signed_degree_regex = '/^[+-]?\d+(\.\d+)?$/';
+     
+     //short Hands 
+     $lat = $form_state['values']['windfarm_default_center_lat']; 
+     $long = $form_state['values']['windfarm_default_center_long']; 
+     
+     //validate latitud and longitud formats ; 
+     if(!preg_match($signed_degree_regex, $lat)) {
+       form_set_error('windfarm_default_center_lat',  t('invalid  latitud, must be a signed latitud (DDD.ddd)')); 
+     }
+
+     if(!preg_match($signed_degree_regex, $long)) {
+      form_set_error('windfarm_default_center_long', t('invalid  longitude, must be a signed longitude (DDD.ddd)')); 
+    }
+    // validate range of latitude and longitude 
+    if(!(-180 <= $lat) && (180 >= $lat)) {
+      form_set_error('windfarm_default_center_lat', t('latitude out of range, must be between -180 and 180'));
+    }
+
+    if(!(-180 <= $long) && (180 >= $long)) {
+      form_set_error('windfarm_default_center_long', t('longitude out of range, must be between -180 and 180'));
+    }
+   }
