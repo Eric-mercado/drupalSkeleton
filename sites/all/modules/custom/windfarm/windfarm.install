@@ -32,5 +32,20 @@ function winfarm_unistall() {
 
     $t = get_t(); 
     drupal_set_message($t('windfarm variables deleted')); 
-    
+
+    // Install the content type definition. 
+    $content_type = array(
+        'type' => 'windfarm', # machine name
+        'name' => 'Wind Farm', // human readeble name
+        'description' => t('A windfarm including location'),
+        'title_label' => t('facility name'),
+        'base' => 'node_content',
+        'custom' => TRUE ,
+    );
+
+    // Set remaining definitions with defaults. 
+    $node_type = note_type_set_defaults($content_type); 
+
+    // Save the content type. 
+    node_type_safe($node_type); 
 }
