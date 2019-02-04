@@ -134,23 +134,42 @@ function windfarm_install() {
 /** 
  * Implements hook_uninstall().
 */
-function winfarm_unistall() {
+function windfarm_uninstall() {
     //remove variables. 
     variable_del('windfarm_gmap'); 
     variable_del('windfarm_default_center_lat');
     variable_del('windfarm_default_center_long');
     variable_del('windfarm_default_gmap_zom');
-
     $t = get_t(); 
     drupal_set_message($t('windfarm variables deleted')); 
 
-    // Install the content type definition. 
-    /*$content_type = array(
-        'type' => 'windfarm', # machine name
-        'name' => 'Wind Farm', // human readeble name
-        'description' => t('A windfarm including location'),
-        'title_label' => t('facility name'),
-        'base' => 'node_content',
-        'custom' => TRUE ,
-    );*/
+    //get all node ids related to windfarm
+    $sql_query = 'SELECT nid '; 
+    $sql_query .= 'FROM {node} '; 
+    $sql_query .= 'WHERE {node}.type = :type '; 
+
+    $result = db_query($sql_query, array(':type' => 'windfarm')); 
+
+    $nids = array(); 
+    foreach($result as $row) {
+        $nids[] = $row->nid; 
+    }
+
+    //Delete all windfamr content. 
+    node_delete_multiple($nids);    
+    drupal_set_message(t('Windfarm content deleted.')); 
+
+    //Remove all field instances. 
+    foreach(field_info_instances('node', 'windfarm') as $field_name => $instance) {
+            field_delete_instance($instance); 
+    }
+
+    drupal_set_message(t('Windfamr field and filed instances removed')); 
+
+    //delete the content type 
+    node_type_delete('windfarm'); 
+    drupal_set_message(t('windfarm node type deleted'));
+    
+    //clean up deleted fields
+    field_purge_batch(1000);
 }
