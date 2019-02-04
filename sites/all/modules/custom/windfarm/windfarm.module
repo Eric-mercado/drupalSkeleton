@@ -202,3 +202,110 @@ function windfarm_help($path, $arg) {
     function _windfarm_validate_geocode_range($value) {
        return ((-180 <= $value) && ($value <= 180))? TRUE: FALSE;
       }
+
+    
+/**
+ * Implements hook_feeds_importer_default().
+ */
+function windfarm_feeds_importer_default() {
+  $export = array(); 
+
+  $feeds_importer = new stdClass();
+  $feeds_importer->disabled = FALSE; 
+  $feeds_importer->api_version = 1;
+  $feeds_importer->id = 'openei_wind_farms';
+  $feeds_importer->config = array(
+  'name' => 'OpenEI Wind Farms',
+  'description' => 'CSV Import of OpenEI',
+  'fetcher' => array(
+      'plugin_key' => 'FeedsFileFetcher',
+      'config' => array(
+      'allowed_extensions' => 'txt csv tsv xml opml',
+      'delete_uploaded_file' => FALSE,
+      'direct' => FALSE,
+      'directory' => 'public://feeds',
+      'allowed_schemes' => array(
+          0 => 'public',
+      ),
+      ),
+  ),
+  'parser' => array(
+      'plugin_key' => 'FeedsCSVParser',
+      'config' => array(
+      'delimiter' => ',',
+      'encoding' => 'UTF-8',
+      'no_headers' => 0,
+      ),
+  ),
+  'processor' => array(
+      'plugin_key' => 'FeedsNodeProcessor',
+      'config' => array(
+      'expire' => '-1',
+      'author' => 0,
+      'authorize' => 1,
+      'mappings' => array(
+          0 => array(
+          'source' => 'Facility Name',
+          'target' => 'title',
+          'unique' => FALSE,
+          'language' => 'und',
+          ),
+          1 => array(
+          'source' => 'Facility',
+          'target' => 'body',
+          'unique' => FALSE,
+          'language' => 'und',
+          ),
+          2 => array(
+          'source' => 'Number of Units',
+          'target' => 'windfarm_unit_count',
+          'unique' => FALSE,
+          'language' => 'und',
+          ),
+          3 => array(
+          'source' => 'Latitude',
+          'target' => 'windfarm_latitude',
+          'unique' => FALSE,
+          'language' => 'und',
+          ),
+          4 => array(
+          'source' => 'Longitude',
+          'target' => 'windfarm_longitude',
+          'unique' => FALSE,
+          'language' => 'und',
+          ),
+          5 => array(
+          'source' => 'Manufacturer',
+          'target' => 'windfarm_turbine_manufacturer',
+          'unique' => FALSE,
+          'language' => 'und',
+          ),
+      ),
+      'insert_new' => '1',
+      'update_existing' => '0',
+      'update_non_existent' => 'skip',
+      'input_format' => 'plain_text',
+      'skip_hash_check' => 0,
+      'bundle' => 'windfarm',
+      'language' => 'und',
+      ),
+  ),
+  'content_type' => '',
+  'update' => 0,
+  'import_period' => '-1',
+  'expire_period' => 3600,
+  'import_on_create' => 1,
+  'process_in_background' => 0,
+  );
+  $export['openei_wind_farms'] = $feeds_importer; 
+  return $export; 
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+ function windfarm_ctools_plugin_api($module='', $api='') {
+    if($module =='feeds' && $api == 'windfarm_importer_default') {
+      return array('version' => 1); 
+    }
+  }

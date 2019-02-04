@@ -173,3 +173,4 @@ function windfarm_uninstall() {
     //clean up deleted fields
     field_purge_batch(1000);
 }
+
