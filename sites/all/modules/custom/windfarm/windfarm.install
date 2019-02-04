@@ -18,7 +18,118 @@ function windfarm_install() {
     
     //Give user feedback. 
     drupal_set_message($t('windfarm variables created.')); 
+
+    //Content type definition. 
+    $content_type = array(
+        'type' => 'windfarm',
+        'name' => t('Wind Farm'),
+        'description' => $t('A wind farm including location.'),
+        'title_label' => $t('facility name'),
+        'base' => 'node_content', 
+        'custom' => TRUE ,
+    );
+
+    //Set tje rest opf the fields with defaults. 
+    $node_type = node_type_set_defaults($content_type); 
+
+    //save the content type 
+    node_type_save($node_type); 
+
+    //add a existing field to the body. 
+    node_add_body_field($node_type, $t('Description')); 
+
+    //create fields. 
+    $fields = array(); 
+
+    $fields['windfarm_unit_count'] = array(
+        'field_name' => 'windfarm_unit_count',
+        'type' => 'number_integer', 
+        //optional
+        'cardinality'=>1,
+        'setings' => array(
+            'max_length' => 20,
+        ),
+    );
+    $fields['windfarm_latitude'] = array(
+        'field_name' => 'windfarm_latitude',
+        'type' => 'number_float', 
+        //optional
+        'setings' => array(
+            'max_length' => 20,
+        ),
+    );
+    $fields['windfarm_longitude'] = array(
+        'field_name' => 'windfarm_longitude',
+        'type' => 'number_float', 
+        //optional
+        'setings' => array(
+            'max_length' => 20,
+        ),
+    );
+    $fields['windfarm_turbine_manufacturer'] = array(
+        'field_name' => 'windfarm_turbine_manufacturer',
+        'type' => 'text', 
+        //optional
+        'setings' => array(
+            'max_length' => 60,
+        ),
+    );
+
+    foreach ($fields as $field) {
+        field_create_field($field); 
+    }
+
+    //create field instances.
+    $instances = array(); 
+
+    $instances['windfarm_unit_count'] = array(
+        'field_name' =>'windfarm_unit_count',
+        'label' => $t('number of units'),
+        'description' => t('Number of individual units at a given facility'),
+        'widget' => array('type' =>'text_textfield',),
+        'required' => TRUE,
+        'settings' => array('text_processing' => 0),
+    );
+
+    $instances['windfarm_latitude'] = array(
+        'field_name' =>'windfarm_latitude',
+        'label' => $t('Latitude'),
+        'description' => t('Signed degree format DDD.ddd'),
+        'widget' => array('type' =>'text_textfield',),
+        'display' => 
+            array('default' => 
+                array('type' => 'hidden',
+            ),
+        ),        
+        'settings' => array('text_processing' => 0),
+    );
+
+    $instances['windfarm_longitude'] = array(
+        'field_name' =>'windfarm_longitude',
+        'label' => $t('Longitude'),
+        'description' => t('Signed degree format DDD.ddd'),
+        'widget' => array('type' =>'text_textfield',),
+        'display' => array('default' => array('type' => 'hidden',),),        
+        'settings' => array('text_processing' => 0),
+    );
+
+    $instances['windfarm_turbine_manufacturer'] = array(
+        'field_name' =>'windfarm_turbine_manufacturer',
+        'label' => $t('Turbine manufacturer'),
+        'description' => t('The name of the turbine manufacturer'),
+        'widget' => array('type' =>'text_textfield',),
+        'display' => array('default' => array('label' => 'inline'),),
+        'settings' => array('text_processing' => 0),
+    );
+    
+    foreach($instances as $instance) {
+        $instance['entity_type'] = 'node';
+        $instance['bundle'] = 'windfarm'; 
+        field_create_instance($instance); 
+    }
+    var_dump(get_defined_vars());
 }
+
 
 /** 
  * Implements hook_uninstall().
@@ -34,18 +145,12 @@ function winfarm_unistall() {
     drupal_set_message($t('windfarm variables deleted')); 
 
     // Install the content type definition. 
-    $content_type = array(
+    /*$content_type = array(
         'type' => 'windfarm', # machine name
         'name' => 'Wind Farm', // human readeble name
         'description' => t('A windfarm including location'),
         'title_label' => t('facility name'),
         'base' => 'node_content',
         'custom' => TRUE ,
-    );
-
-    // Set remaining definitions with defaults. 
-    $node_type = note_type_set_defaults($content_type); 
-
-    // Save the content type. 
-    node_type_safe($node_type); 
+    );*/
 }

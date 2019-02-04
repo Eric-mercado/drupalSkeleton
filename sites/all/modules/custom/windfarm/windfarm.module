@@ -117,29 +117,88 @@ function windfarm_help($path, $arg) {
    * Validate wind farm admin settings.  
    */
    function windfarm_admin_settings_form_validate($form, &$form_state) {
-     dpm($form_state['values']);
-     
-     //regex
-     $signed_degree_regex = '/^[+-]?\d+(\.\d+)?$/';
-     
      //short Hands 
      $lat = $form_state['values']['windfarm_default_center_lat']; 
      $long = $form_state['values']['windfarm_default_center_long']; 
      
      //validate latitud and longitud formats ; 
-     if(!preg_match($signed_degree_regex, $lat)) {
+     if(!_windfarm_validate_signed_degrees($lat)) {
        form_set_error('windfarm_default_center_lat',  t('invalid  latitud, must be a signed latitud (DDD.ddd)')); 
      }
 
-     if(!preg_match($signed_degree_regex, $long)) {
+     if(!_windfarm_validate_signed_degrees($long)) {
       form_set_error('windfarm_default_center_long', t('invalid  longitude, must be a signed longitude (DDD.ddd)')); 
     }
     // validate range of latitude and longitude 
-    if(!(-180 <= $lat) && (180 >= $lat)) {
+    if(!_windfarm_validate_geocode_range($lat, 'latitude')) {
       form_set_error('windfarm_default_center_lat', t('latitude out of range, must be between -180 and 180'));
     }
 
-    if(!(-180 <= $long) && (180 >= $long)) {
+    if(!_windfarm_validate_geocode_range($lat, 'longitude')) {
       form_set_error('windfarm_default_center_long', t('longitude out of range, must be between -180 and 180'));
     }
    }
+
+   /**
+    * Implements hook_form_alter().
+    */
+    function windfarm_form_alter(&$form, &$form_state, $form_id ) {
+       dpm($form_id); 
+      switch($form_id) {
+          case 'windfarm_node_form': {
+            $form['#validate'][] = 'windfarm_windfarm_node_form_validate';
+            dpm($form_state);
+            break; 
+          }
+        }
+    }
+
+    /**
+     * Validates windform content type.
+     */
+    function windfarm_windfarm_node_form_validate($form, &$form_state) {
+      //Valiodate Unit count
+      $value = $form_state['values']['windfarm_unit_count'][LANGUAGE_NONE][0]['value']; 
+      $lat = $form_state['values']['windfarm_latitude'][LANGUAGE_NONE][0]['value']; 
+      $long = $form_state['values']['windfarm_longitude'][LANGUAGE_NONE][0]['value']; 
+
+      if($value !=='' && (!is_numeric($value) || intval($value) != $value || $value <= 0 )) {
+        form_set_error('windfarm_unit_count', t('The numnber of units must be a positive number'));
+      }   
+
+      if(!_windfarm_validate_geocode_range($lat)) {
+        form_set_error('windfarm_latitude', t('Latitude value must be between 0 and 180.'));
+      }
+      if(!_windfarm_validate_signed_degrees($lat)) {
+        form_set_error('windfarm_latitude', t('Latitude value must be degree signed as DDD.ddd'));    
+      }
+
+      if(!_windfarm_validate_geocode_range($long) || !_windfarm_validate_signed_degrees($long)) {
+        form_set_error('windfarm_longitude', t('Longitude value must be degree signed as DDD.ddd and in a value between 0 and 180.'));
+      }
+    }
+
+    /**
+     * Determinate if a value is in signed degrees format DDD.ddd.
+     * @param string $value
+     * the value to be tested. 
+     * 
+     * @return boolean 
+     * TRUE if correclty formated. 
+     */
+    function _windfarm_validate_signed_degrees($value) {
+      //regex
+     $signed_degree_regex = '/^[+-]?\d+(\.\d+)?$/';
+     return preg_match($signed_degree_regex ,$value)? TRUE: FALSE; 
+    }
+
+    /**
+     * Determinate if a value is in correct range of .
+     * @param string $value
+     * the value to be tested.
+     * @return boolean 
+     * TRUE if the value is in the correct range. 
+     */
+    function _windfarm_validate_geocode_range($value) {
+       return ((-180 <= $value) && ($value <= 180))? TRUE: FALSE;
+      }
