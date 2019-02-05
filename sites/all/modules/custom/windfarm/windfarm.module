@@ -305,7 +305,7 @@ function windfarm_feeds_importer_default() {
  * Implements hook_ctools_plugin_api().
  */
  function windfarm_ctools_plugin_api($module='', $api='') {
-    if($module =='feeds' && $api == 'windfarm_importer_default') {
+    if($module =='feeds' && $api == 'feeds_importer_default') {
       return array('version' => 1); 
     }
   }
